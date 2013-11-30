@@ -1,0 +1,7 @@
+ global proc myTestProc()
+ {
+        source "autoSetProj.mel";
+        autoSetProj();
+
+ }
+scriptJob -event SceneOpened "myTestProc";

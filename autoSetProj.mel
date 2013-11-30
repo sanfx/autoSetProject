@@ -1,0 +1,100 @@
+/*
+Author:Sanjeev Kumar (aka san)
+e-mail:asksan@live.ca
+FileName: autoSetProj.mel
+Version: Pre-Release Beta
+Description:
+        This code is usefull if you want project to be set automatically while the scene file is opened.
+warning:
+   If your project is different then the from the file location the this script will either set the project where the scene file is located or it will not do anything.
+
+notes:
+	This code is only tested on Windows OS and will not work on Linux or OSX.
+   I tested that code should work any of maya version 8 and after.
+
+Send Bugs at :asksan@live.ca
+
+
+usage :put this file to your maya scripts directory.
+
+            source autoSetProj.mel
+
+or click from the shelf button ..
+
+*/
+
+global proc myProc( string $scndir,  int $num)
+            {
+          		 string $prjDir= startString($scndir, $num);
+          		 setProject($prjDir);
+          		 print "\nautoSetProject Mel Script by Sanjeev Kumar \nContact: asksan@live.ca \nwww.devilsan.com";
+          		 headsUpMessage  ("The project is set to "+ $prjDir);
+        	}
+
+
+global proc autoSetProj(){
+
+   string $sf[] =`file -q -l`;
+    for($eachObj in $sf)
+    {
+        print "\nfile you have opened: ";
+        print ($eachObj +"\n");// prints file path
+    }
+
+
+        string $ifUnt =`match "untitled" $sf[0]`;
+        print $ifUnt;// will only print out if no scene is opened or scene is not saved.
+        if($ifUnt=="untitled")
+        {
+            headsUpMessage  ("Looks like you haven't saved the scene file yet. autSetProj.mel wont be able to set project untile you save your scene file.");
+            print("Looks like you haven't saved the scene file yet. autSetProj.mel wont be able to set project untile you save your scene file.");
+        }
+        else
+        {
+            print("\n Scene file is not untitled \n");
+            print ("\n"+ $sf[0] +"\n");
+            string $scndir = `match "^.*/" $sf[0]`;
+            print ($scndir+"\n");
+            $Check=`match "scenes/" $scndir`;
+            $CheckEd=`match "edits/" $scndir`;
+            print($Check);
+            print("\n"+$CheckEd);
+         if($Check =="scenes/")
+            {
+                if  ($CheckEd != "edits/")
+                {
+                   print ("\nthe Scene directory: "+$scndir);
+                   int $num= size($scndir)-7;
+                    myProc($scndir,$num);
+                }
+                if  ($CheckEd == "edits/")
+                {
+                    print ("\nThe Scene is in edits directory: "+$scndir);
+                    int $num= size($scndir)-13;
+                    myProc($scndir,$num);
+                }
+             // myProc($num);
+			}
+           else
+               {
+                  print("Looks like you are not following a standard procedure for saving maya scene files");
+                  print ("\nThe Scene directory is : "+$scndir);
+                  $response = `confirmDialog -title "Save Scene as Or Set Project"
+						  -message ("Click Save Scene as maya specific standard Procedure or\n click no to Set Project to "+ $scndir)  -button "Save Scene As"  -button "Set Project"  -defaultButton "Save Scene As"  -cancelButton "Set Project"  -dismissString "No"`;
+
+						  if( $response == "Save Scene As" )
+						   {
+						              evalDeferred("SaveSceneAs");
+						     }
+						      else if( $response == "Set Project" )
+						       {
+						           setProject($scndir);
+						           headsUpMessage  ("The project is set to "+ $scndir);
+						         }
+     //print("In Order for autoSetProj.mel script to set the project by itself, it must be saved in scene directory");
+               }
+            }// block closed for $ifUnt is not untitled
+
+}
+
+autoSetProj();
